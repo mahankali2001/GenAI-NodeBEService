@@ -8,6 +8,7 @@ npm install morgan-json
 npm install winston
 npm install cors
 npm install express-rate-limit
+npm install useragent
 
 # What you learn in this project
 - Express web framework
