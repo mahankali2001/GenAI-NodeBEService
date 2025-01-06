@@ -1,14 +1,14 @@
 # NodeJSApp
 
 # Install following node modules
-npm install express
-npm install -g nodemon
-npm install morgan
-npm install morgan-json
-npm install winston
-npm install cors
-npm install express-rate-limit
-npm install useragent
+- npm install express
+- npm install -g nodemon
+- npm install morgan
+- npm install morgan-json
+- npm install winston
+- npm install cors
+- npm install express-rate-limit
+- npm install useragent
 
 # What you learn in this project
 - Express web framework
