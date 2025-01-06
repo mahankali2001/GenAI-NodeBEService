@@ -28,4 +28,13 @@
             - These errors can often cause issues in your apps like memory leaks and high CPU usage. The best thing to do is to crash the app and restart it gracefully by using the Node.js cluster mode or a tool like PM2
             - Like, passing string Vs object / incorrect parameter in a fn, didn't resolve or catch rejected promise, calling async fn without a callback
 
+
+# APIs
+- /
+- /about
+- /prompt -- future integration with Gen AI APIs
+- Testing rate limiting - rate limit after 2 requests
+    - /users
+    - /users/<userid> 
+
 # Reference - https://roadmap.sh/nodejs
