@@ -80,12 +80,16 @@ const apiLimiter = rateLimit({
 app.use('/users', apiLimiter);
 
 adminrouter.get('/users', (req, res) => {
-    try {
-        res.send('User list');
-    } catch (error) {
-        next(error) //forward errors to the error handler middleware
-    }
+    // try {
+    //     res.send('User list');
+    // } catch (error) {
+    //     next(error) //forward errors to the error handler middleware
+    // }
 
+    // Missing error handling in real use case - centralized error handling
+    res.send('User list');
+    
+    // Centralized error handling 
     process.on('uncaughtException', error => {
         logError(error)
     
