@@ -1,16 +1,18 @@
 const express = require('express');
+const app = express();
+const port = 3000;
+
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 
-const logger = require('./loggers/logger') // Import the custom logger
-const httpLogger = require('./loggers/httpLogger')
-const { logError, isOperationalError } = require('./loggers/errorHandler')
-
+// custom logger
 const httpStatusCodes = require('./loggers/httpStatusCodes')
 const api404Error = require('./loggers/api404Error'); 
 
-const app = express();
-const port = 3000;
+// centralized error handling
+const logger = require('./loggers/logger') 
+const httpLogger = require('./loggers/httpLogger')
+const { logError, isOperationalError } = require('./loggers/errorHandler')
 
 // Use the logger middleware
 // app.use(logger);
