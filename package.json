@@ -11,8 +11,13 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "cors": "^2.8.5",
     "express": "^4.21.2",
-    "morgan": "^1.10.0"
+    "express-rate-limit": "^7.5.0",
+    "morgan": "^1.10.0",
+    "morgan-json": "^1.1.0",
+    "winston": "^3.17.0",
+    "winston-logsene": "^2.1.2"
   },
   "devDependencies": {
     "nodemon": "^3.1.9"
