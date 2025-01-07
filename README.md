@@ -9,11 +9,22 @@
 - npm install cors
 - npm install express-rate-limit
 - npm install useragent
+- npm install openai
 - npm install dotenv
 - npm install body-parser  (Middleware to parse JSON and URL-encoded data sent in HTTP requests)
 - npm install axios  (Promise-based HTTP client / JS library to make HTTP (async / intercept req/resp / transforms JSON data / can automatically set the XSRF token from cookies, providing built-in support for Cross-Site Request Forgery (CSRF) protection) requests)
 
-# What you learn in this project
+# Create .env file in your project root folder and have following entries in the file. 
+```
+OPENAI_API_KEY="<Provide your API Key>"
+OPENAI_URL='https://api.openai.com/v1/chat/completions'
+OPENAI_MODEL='gpt-3.5-turbo'
+PORT=3001
+RATE_LIMIT_WINDOW=15 * 60 * 1000 # 15 minutes
+RATE_LIMIT_MAX=5
+```
+
+# What you learn in this project (Some of the code you may need to uncomment to try)
 - Express web framework
 - Using different middlewares - global or applicaiton level, built-in, router level, error handling level, third party level
     - app middlewares - global logging, auth

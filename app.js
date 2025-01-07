@@ -2,13 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const app = express();
-const rateLimit = require('express-rate-limit');
-const cors = require('cors');
-const axios = require('axios');
+const rateLimit = require('express-rate-limit'); // Rate limiting middleware for Express
+const cors = require('cors'); // Cross-Origin Resource Sharing (CORS) middleware
+const axios = require('axios'); // HTTP client for Node.js
 
 
 const port = process.env.PORT || 3001;
-// Enable Cross-Origin Resource Sharing (CORS) for all requests. 
+// Allow requests from the client-side 
 app.use(cors());
 
 // custom logger
@@ -19,10 +19,6 @@ const api404Error = require('./loggers/api404Error');
 const logger = require('./loggers/logger') 
 const httpLogger = require('./loggers/httpLogger')
 const { logError, isOperationalError } = require('./loggers/errorHandler')
-
-// Use the logger middleware
-// app.use(logger);
-app.use(httpLogger)
 
 // static file serving
 app.use(express.static('public'));
@@ -35,41 +31,24 @@ app.use((req, res, next) => {
     console.log('Application-Level Middleware');
     // Log every incoming HTTP request for monitoring or debugging.
     console.log(`${req.method} ${req.url}`);
-    // Verify user tokens or credentials for all incoming requests.
+    // Verify user tokens or credentials for all incoming requests - future use
     // if (!req.headers.authorization) {
     //     return res.status(401).send('Unauthorized');
     // }
     next();
 });
 
-
-// Built-in middleware - Parse JSON or URL-encoded payloads for all requests.
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-
+// Throttle requests to prevent abuse or overloading.
+const apiLimiter = rateLimit({
+    windowMs: process.env.RATE_LIMIT_WINDOW, 
+    max: process.env.RATE_LIMIT_MAX,
+});
 
 app.get('/api', (req, res) => {
-    res.send('Node JS App APIs - /about, /users, /users/:id, /chat');
+    res.send('Node JS Server App APIs - /chat');
 });
 
-app.get('/api/about', (req, res) => {
-    res.send('nodejs app - Gen AI features!');
-});
-
-const adminrouter = express.Router();
-
-// Router-Level Middleware - authentication, authorization, request validation, rate limiting
-adminrouter.use((req, res, next) => {
-    console.log('Router-Level Middleware');
-    // Authenticate only specific routes like /prompt, /admin 
-    // Verify admin tokens or credentials for all incoming requests to the admin routes
-    // if (!req.headers.adminToken) {
-    //     return res.status(403).send('Forbidden');
-    // }
-    next();
-});
-
-app.post('/api/chat', async (req, res) => {
+app.post('/api/chat', apiLimiter, async (req, res, next) => {
     try {
         const { message } = req.body;
         const response = await axios.post(
@@ -85,87 +64,44 @@ app.post('/api/chat', async (req, res) => {
                 },
             }
         );
-
+        // console.log(response.data.choices[0].message.content);
         res.json(response.data.choices[0].message.content);
     } catch (error) {
-        // next(error)
-        logError(error.stack);
-        res.status(500).send(error.message);
+        // logError(error.stack);
+        next(error)
+        // res.status(500).send(error.message);
     }
 });
-
-// Throttle requests to prevent abuse or overloading.
-const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 2 // Limit each IP to 100 requests per window
-});
-
-app.use('/api/users', apiLimiter);
-
-adminrouter.get('/api/users', (req, res) => {
-    // try {
-    //     res.send('User list');
-    // } catch (error) {
-    //     next(error) //forward errors to the error handler middleware
-    // }
-
-    // Missing error handling in real use case - centralized error handling
-    res.send('User list');
-    
-    // Centralized error handling 
-    process.on('uncaughtException', error => {
-        logError(error)
-    
-        if (!isOperationalError(error)) {
-            process.exit(1)
-        }
-    })
-    process.on('unhandledRejection', error => {
-        throw error
-    })
-});
-
-adminrouter.use('/api/users/:id', (req, res, next) => {
-    // Validate request parameters or payloads for a particular route group.
-    if (!Number.isInteger(Number(req.params.id))) {
-        return res.status(400).send('Invalid User ID');
-    }
-    next();
-});
-
-adminrouter.get('/api/users/:id', (req, res) => {
-    res.send(`User ID: ${req.params.id}`);
-});
-
-app.use('/', adminrouter);
-
 
 // Error-Handling Middleware - centralized error handling, logging, and provide user-friendly error pages based on status codes
+// app.use(logger);
+app.use(httpLogger) // log every incoming HTTP request for monitoring or debugging
+
 app.use((err, req, res, next) => {
-    console.error(err.stack);
+    // console.error("centralized error handling");
     if (err.status === httpStatusCodes.NOT_FOUND) {
-        // throw new Api404Error(`User with id: ${req.params.id} not found.`)
-        throw new Api404Error('Page Not Found') // 
         // return res.status(404).send('Page Not Found');
+        throw new Api404Error('Page Not Found') // custom error
     }
-    res.status(500).send('Internal Server Error');
+    res.status(500).send('Internal Server Error'); // generic error
 });
 
-// 404 Not Found Middleware
-app.use((req, res, next) => {
-    res.status(404).send('Page Not Found');
-});
+// Test uncaughtException handler
+// setTimeout(() => {
+//     throw new Error('Test uncaught exception');
+// }, 1000);
 
 process.on('uncaughtException', error => {
     logError(error)
 
     if (!isOperationalError(error)) {
+        // console.log('uncaughtException - isOperationalError');
         process.exit(1)
     }
-})
-process.on('unhandledRejection', error => {
-    throw error
-})
+});
+// process.on('unhandledRejection', error => {
+//     throw error
+// });
 
 // Server Listening
 app.listen(port, () => {
@@ -178,7 +114,7 @@ app.listen(port, () => {
 
 
 
-
+// Test code snippets
 
 
 // Middleware is a function that execute during the lifecycle of an HTTP request to the server
@@ -191,6 +127,80 @@ app.listen(port, () => {
 // Types of middleware: Application-level (global logging, authentication, cors), Router-level, Error-handling, Built-in (Provided by Express for common tasks - express.json(), express.urlencoded()), Third-party
 // Middleware usecases - Logging, Authentication, Authorization, Error Handling, Request Parsing, Response Formatting, Caching, Compression, etc.
 
+// Built-in middleware - Parse JSON or URL-encoded payloads for all requests.
+// app.use(express.json());
+// app.use(express.urlencoded({ extended: true }));
+
+
+// app.get('/api', (req, res) => {
+//     res.send('Node JS App APIs - /about, /users, /users/:id, /chat');
+// });
+
+// app.get('/api/about', (req, res) => {
+//     res.send('nodejs app - Gen AI features!');
+// });
+
+// const adminrouter = express.Router();
+
+// // Router-Level Middleware - authentication, authorization, request validation, rate limiting
+// adminrouter.use((req, res, next) => {
+//     console.log('Router-Level Middleware');
+//     // Authenticate only specific routes like /prompt, /admin 
+//     // Verify admin tokens or credentials for all incoming requests to the admin routes
+//     // if (!req.headers.adminToken) {
+//     //     return res.status(403).send('Forbidden');
+//     // }
+//     next();
+// });
+
+// app.use('/api/users', apiLimiter);
+
+// adminrouter.get('/api/users', (req, res) => {
+//     // try {
+//     //     res.send('User list');
+//     // } catch (error) {
+//     //     next(error) //forward errors to the error handler middleware
+//     // }
+
+//     // Missing error handling in real use case - centralized error handling
+//     res.send('User list');
+    
+//     // Centralized error handling 
+//     process.on('uncaughtException', error => {
+//         logError(error)
+    
+//         if (!isOperationalError(error)) {
+//             process.exit(1)
+//         }
+//     })
+//     process.on('unhandledRejection', error => {
+//         throw error
+//     })
+// });
+
+// adminrouter.use('/api/users/:id', (req, res, next) => {
+//     // Validate request parameters or payloads for a particular route group.
+//     if (!Number.isInteger(Number(req.params.id))) {
+//         return res.status(400).send('Invalid User ID');
+//     }
+//     next();
+// });
+
+// adminrouter.get('/api/users/:id', (req, res) => {
+//     res.send(`User ID: ${req.params.id}`);
+// });
+
+// app.use('/', adminrouter);
+
+// Test uncaughtException handler
+// setTimeout(() => {
+//     throw new Error('Test uncaught exception');
+// }, 1000);
+
+// 404 Not Found Middleware
+// app.use((req, res, next) => {
+//     res.status(404).send('Page Not Found');
+// });
 
 // app.use(morgan('dev')); // logs incoming requests, status code, response time
 // app.use(morgan('tiny')); // logs in Apache tiny log format, minimal output
