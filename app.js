@@ -1,9 +1,15 @@
+require('dotenv').config();
 const express = require('express');
+const bodyParser = require('body-parser');
 const app = express();
-const port = 3000;
-
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
+const axios = require('axios');
+
+
+const port = process.env.PORT || 3001;
+// Enable Cross-Origin Resource Sharing (CORS) for all requests. 
+app.use(cors());
 
 // custom logger
 const httpStatusCodes = require('./loggers/httpStatusCodes')
@@ -21,6 +27,9 @@ app.use(httpLogger)
 // static file serving
 app.use(express.static('public'));
 
+// Built-in middleware - Parse JSON or URL-encoded payloads for all requests.
+app.use(bodyParser.json());
+
 // Global or Application-Level Middleware - global logging, authentication, cors
 app.use((req, res, next) => {
     console.log('Application-Level Middleware');
@@ -33,20 +42,17 @@ app.use((req, res, next) => {
     next();
 });
 
-// Enable Cross-Origin Resource Sharing (CORS) for all requests.
-app.use(cors());
-
 
 // Built-in middleware - Parse JSON or URL-encoded payloads for all requests.
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 
-app.get('/', (req, res) => {
-    res.send('Node JS App APIs - /about, /users, /users/:id, /prompt');
+app.get('/api', (req, res) => {
+    res.send('Node JS App APIs - /about, /users, /users/:id, /chat');
 });
 
-app.get('/about', (req, res) => {
+app.get('/api/about', (req, res) => {
     res.send('nodejs app - Gen AI features!');
 });
 
@@ -63,11 +69,28 @@ adminrouter.use((req, res, next) => {
     next();
 });
 
-adminrouter.get('/prompt', (req, res) => {
+app.post('/api/chat', async (req, res) => {
     try {
-        res.send('User prompt');
+        const { message } = req.body;
+        const response = await axios.post(
+            process.env.OPENAI_URL,
+            {
+                model: process.env.OPENAI_MODEL,
+                messages: [{ role: 'user', content: message }],
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+                },
+            }
+        );
+
+        res.json(response.data.choices[0].message.content);
     } catch (error) {
-        next(error) //forward errors to the error handler middleware
+        // next(error)
+        logError(error.stack);
+        res.status(500).send(error.message);
     }
 });
 
@@ -77,9 +100,9 @@ const apiLimiter = rateLimit({
     max: 2 // Limit each IP to 100 requests per window
 });
 
-app.use('/users', apiLimiter);
+app.use('/api/users', apiLimiter);
 
-adminrouter.get('/users', (req, res) => {
+adminrouter.get('/api/users', (req, res) => {
     // try {
     //     res.send('User list');
     // } catch (error) {
@@ -102,7 +125,7 @@ adminrouter.get('/users', (req, res) => {
     })
 });
 
-adminrouter.use('/users/:id', (req, res, next) => {
+adminrouter.use('/api/users/:id', (req, res, next) => {
     // Validate request parameters or payloads for a particular route group.
     if (!Number.isInteger(Number(req.params.id))) {
         return res.status(400).send('Invalid User ID');
@@ -110,7 +133,7 @@ adminrouter.use('/users/:id', (req, res, next) => {
     next();
 });
 
-adminrouter.get('/users/:id', (req, res) => {
+adminrouter.get('/api/users/:id', (req, res) => {
     res.send(`User ID: ${req.params.id}`);
 });
 

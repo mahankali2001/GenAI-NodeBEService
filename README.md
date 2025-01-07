@@ -9,6 +9,9 @@
 - npm install cors
 - npm install express-rate-limit
 - npm install useragent
+- npm install dotenv
+- npm install body-parser  (Middleware to parse JSON and URL-encoded data sent in HTTP requests)
+- npm install axios  (Promise-based HTTP client / JS library to make HTTP (async / intercept req/resp / transforms JSON data / can automatically set the XSRF token from cookies, providing built-in support for Cross-Site Request Forgery (CSRF) protection) requests)
 
 # What you learn in this project
 - Express web framework
