@@ -40,8 +40,14 @@ app.use((req, res, next) => {
 
 // Throttle requests to prevent abuse or overloading.
 const apiLimiter = rateLimit({
-    windowMs: process.env.RATE_LIMIT_WINDOW, 
-    max: process.env.RATE_LIMIT_MAX,
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW, 10), 
+    max: parseInt(process.env.RATE_LIMIT_MAX, 10),
+    handler: (req, res, next) => {
+        console.log('Too many requests, please try again later.');
+        const error = new Error('Too many requests, please try again later.');
+        error.status = 429;
+        next(error);
+    }
 });
 
 app.get('/api', (req, res) => {

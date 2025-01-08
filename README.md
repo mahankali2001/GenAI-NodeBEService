@@ -45,10 +45,7 @@ RATE_LIMIT_MAX=5
 
 # APIs
 - GET /api
-- GET /api/about
-- POST /api/chat -- Integrates with [Open AI](https://api.openai.com/v1/chat/completions) API - gpt-3.5-turbo model. 
-- Test rate limiting - rate limit after 2 requests
-    - GET /api/users
-    - GET /api/users/<userid> 
+- POST /api/chat -- Integrates with Open AI
+    - Test rate limiting - rate limit after 5 requests
 
 # Reference - https://roadmap.sh/nodejs
