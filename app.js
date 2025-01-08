@@ -8,7 +8,7 @@ const axios = require('axios'); // HTTP client for Node.js
 
 
 const port = process.env.PORT || 3001;
-// Allow requests from the client-side 
+// Allow requests from the client-side / another domain
 app.use(cors());
 
 // custom logger
@@ -123,24 +123,17 @@ app.listen(port, () => {
 // Test code snippets
 
 
-// Middleware is a function that execute during the lifecycle of an HTTP request to the server
-// Middleware functions - 
-// can access objects like request (req), response (res) objects, as well as call next middleware using next() function
-// can modify objects, short-circuit the request-response cycle (end the request-response cycle)
-// Middleware Execution Flow: 
-// Middleware 1 → next() → Middleware 2 → next() → Route Handler → Response Sent.
-// request-response cycle ends after the middleware if next() is missing
-// Types of middleware: Application-level (global logging, authentication, cors), Router-level, Error-handling, Built-in (Provided by Express for common tasks - express.json(), express.urlencoded()), Third-party
+// Middleware - function that execute during the lifecycle of an HTTP request to the server
+// got access to request (req), response (res) objects, as well as call next middleware using next() function
+// can modify objects, short-circuit the request-response cycle / end the request-response cycle
+// Execution Flow: Middleware 1 → next() → Middleware 2 → next() → Route Handler → Response Sent.
+// request-response cycle ends if next() is missing
+// Types: Application-level (global logging, authentication, cors), Router-level, Error-handling, Built-in (Provided by Express for common tasks - express.json(), express.urlencoded()), Third-party
 // Middleware usecases - Logging, Authentication, Authorization, Error Handling, Request Parsing, Response Formatting, Caching, Compression, etc.
 
 // Built-in middleware - Parse JSON or URL-encoded payloads for all requests.
 // app.use(express.json());
 // app.use(express.urlencoded({ extended: true }));
-
-
-// app.get('/api', (req, res) => {
-//     res.send('Node JS App APIs - /about, /users, /users/:id, /chat');
-// });
 
 // app.get('/api/about', (req, res) => {
 //     res.send('nodejs app - Gen AI features!');
@@ -208,12 +201,14 @@ app.listen(port, () => {
 //     res.status(404).send('Page Not Found');
 // });
 
+// More logging options
 // app.use(morgan('dev')); // logs incoming requests, status code, response time
 // app.use(morgan('tiny')); // logs in Apache tiny log format, minimal output
 // app.use(morgan('short')); // logs in Apache short log format, essential information like method, URL, and status code
 // app.use(morgan('common')); // logs in Apache common log format, essential information like method, URL, and status code
 
-// console.log(this);    // logs {}
+// JS window vs global
+// console.log(this);    // log {}
 // module.exports.foo = 5;
 // console.log(this);   // log { foo:5 }
 // console.log(global); 
@@ -222,3 +217,14 @@ app.listen(port, () => {
 // setInterval(() => console.log('setInterval'), 1000);
 // clearInterval(1);
 // console.log(module);
+
+//CORS - Cross-Origin Resource Sharing - allows restricted resources on a web page to be requested from another domain outside the domain from which the resource originated
+//Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers, Access-Control-Allow-Credentials, Access-Control-Max-Age
+//prevent Cross-Site Request Forgery (CSRF) attacks
+// const corsOptions = {
+//     origin: 'http://example.com', // Allow only this origin
+//     methods: 'GET,POST', // Allow only GET and POST methods
+//     allowedHeaders: 'Content-Type,Authorization', // Allow only these headers
+//   };
+  
+// app.use(cors(corsOptions));
